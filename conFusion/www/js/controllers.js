@@ -173,13 +173,19 @@ angular.module('conFusion.controllers', [])
     }
 ])
 
-.controller('DishDetailController', ['$scope', '$stateParams', 'menuFactory', 'favoriteFactory', '$ionicPopover', '$ionicListDelegate', 'baseURL',
-    function($scope, $stateParams, menuFactory, favoriteFactory, $ionicPopover, $ionicListDelegate, baseURL) {
+.controller('DishDetailController', ['$scope', '$stateParams', 'menuFactory', 'favoriteFactory', '$ionicPopover', '$ionicListDelegate', '$ionicModal', 'baseURL',
+    function($scope, $stateParams, menuFactory, favoriteFactory, $ionicPopover, $ionicListDelegate, $ionicModal, baseURL) {
 
         $scope.baseURL = baseURL;
         $scope.dish = {};
         $scope.showDish = false;
         $scope.message = "Loading ...";
+        $scope.mycomment = {
+        rating: 5,
+        comment: "",
+        author: "",
+        date: ""
+    };
 
         $scope.dish = menuFactory.getDishes().get({
             id: parseInt($stateParams.id, 10)
@@ -224,6 +230,45 @@ angular.module('conFusion.controllers', [])
             favoriteFactory.addToFavorites(index);
             $ionicListDelegate.closeOptionButtons();
         };
+
+
+ // Create the login modal that we will use later
+    $ionicModal.fromTemplateUrl('templates/dish-comment.html', {
+        scope: $scope
+    }).then(function(modal) {
+        $scope.commentForm = modal;
+    });
+
+    // Triggered in the login modal to close it
+    $scope.closeComment = function() {
+        $scope.commentForm.hide();
+    };
+
+    // Open the login modal
+    $scope.addComment = function() {
+        $scope.commentForm.show();
+    };
+
+    // Perform the login action when the user submits the login form
+    $scope.doComment = function() {
+        $scope.mycomment.date = new Date().toISOString();
+        console.log($scope.mycomment);
+
+        $scope.dish.comments.push($scope.mycomment);
+        menuFactory.getDishes().update({
+            id: $scope.dish.id
+        }, $scope.dish);
+
+        $scope.mycomment = {
+            rating: 5,
+            comment: "",
+            author: "",
+            date: ""
+        };
+        $scope.closeComment();
+        $scope.closePopover();
+    };
+
     }
 ])
 
